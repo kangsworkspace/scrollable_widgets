@@ -1,0 +1,653 @@
+# Dart vs Swift 비교 가이드
+
+## 목차
+
+1. [컬렉션 타입](#컬렉션-타입)
+2. [클로저/람다 표현식](#클로저람다-표현식)
+3. [변수 선언](#변수-선언)
+4. [옵셔널 처리](#옵셔널-처리)
+5. [함수 선언](#함수-선언)
+6. [클래스와 생성자](#클래스와-생성자)
+7. [타입 추론](#타입-추론)
+8. [문자열 처리](#문자열-처리)
+9. [제어 흐름](#제어-흐름)
+10. [Extension](#extension)
+
+---
+
+## 컬렉션 타입
+
+### List vs Array
+
+**Dart**
+```dart
+// Dart에서는 List를 사용 (Array 타입 없음)
+final List<int> numbers = List.generate(100, (index) => index);
+final List<String> names = ['Alice', 'Bob', 'Charlie'];
+
+// 가변 리스트
+List<int> mutableList = [1, 2, 3];
+mutableList.add(4);
+
+// 고정 길이 리스트
+List<int> fixedList = List.filled(5, 0);
+```
+
+**Swift**
+```swift
+// Swift에서는 Array를 사용
+let numbers = Array(0..<100)
+let names = ["Alice", "Bob", "Charlie"]
+
+// 가변 배열
+var mutableArray = [1, 2, 3]
+mutableArray.append(4)
+
+// 고정 길이 배열 (실제로는 가변 길이지만 초기값 설정)
+var fixedArray = Array(repeating: 0, count: 5)
+```
+
+**주요 차이점:**
+- Dart: `List`만 사용 (동적 배열)
+- Swift: `Array` 사용 (제네릭 타입 `Array<T>`)
+- Dart: `List.generate()`로 생성
+- Swift: `Array(0..<n)` 또는 `Array(repeating:count:)`로 생성
+
+---
+
+## 클로저/람다 표현식
+
+### 기본 문법
+
+**Dart**
+```dart
+// 기본 클로저
+final numbers = [1, 2, 3, 4, 5];
+final doubled = numbers.map((number) => number * 2).toList();
+
+// 파라미터가 하나일 때 () 생략 가능
+final doubled2 = numbers.map((number) => number * 2).toList();
+
+// 타입 명시
+final doubled3 = numbers.map((int number) => number * 2).toList();
+
+// 여러 줄 클로저
+final result = numbers.map((number) {
+  final squared = number * number;
+  return squared * 2;
+}).toList();
+
+// 파라미터 무시 (_) 사용
+final result2 = numbers.map((_) => 42).toList();
+
+// List.generate에서 사용
+final list = List.generate(10, (index) => index * 2);
+```
+
+**Swift**
+```swift
+// 기본 클로저
+let numbers = [1, 2, 3, 4, 5]
+let doubled = numbers.map { number in number * 2 }
+
+// 축약 문법 ($0, $1 등)
+let doubled2 = numbers.map { $0 * 2 }
+
+// 타입 명시
+let doubled3 = numbers.map { (number: Int) -> Int in
+    return number * 2
+}
+
+// 여러 줄 클로저
+let result = numbers.map { number in
+    let squared = number * number
+    return squared * 2
+}
+
+// 파라미터 무시 (_) 사용
+let result2 = numbers.map { _ in 42 }
+
+// Array(repeating:count:) 또는 고차 함수 사용
+let list = (0..<10).map { $0 * 2 }
+```
+
+**주요 차이점:**
+- Dart: `(parameter) => expression` 형태
+- Swift: `{ parameter in expression }` 형태
+- Dart: 파라미터가 하나일 때도 `()` 필요 (선택적)
+- Swift: 파라미터가 하나일 때 `in` 키워드 사용
+- Dart: `_`는 무시된 파라미터를 의미
+- Swift: `_`는 명시적으로 무시할 때 사용
+- Swift: `$0`, `$1` 등으로 축약 가능 (Dart는 없음)
+
+### 클로저를 함수 파라미터로 전달
+
+**Dart**
+```dart
+// 클로저를 함수 파라미터로 전달
+void processItems(List<int> items, int Function(int) transform) {
+  final result = items.map(transform).toList();
+  print(result);
+}
+
+// 사용
+processItems([1, 2, 3], (x) => x * 2);
+processItems([1, 2, 3], (int x) => x * 2);
+```
+
+**Swift**
+```swift
+// 클로저를 함수 파라미터로 전달
+func processItems(_ items: [Int], transform: (Int) -> Int) {
+    let result = items.map(transform)
+    print(result)
+}
+
+// 사용
+processItems([1, 2, 3]) { $0 * 2 }
+processItems([1, 2, 3]) { (x: Int) -> Int in x * 2 }
+```
+
+---
+
+## 변수 선언
+
+### var vs let vs final
+
+**Dart**
+```dart
+// var: 타입 추론, 재할당 가능
+var name = "Dart";
+name = "Flutter"; // OK
+
+// final: 재할당 불가 (런타임 상수)
+final age = 25;
+// age = 26; // Error
+
+// const: 컴파일 타임 상수
+const pi = 3.14159;
+// const pi = calculatePi(); // Error: 컴파일 타임에 계산 불가
+
+// 타입 명시
+String name2 = "Dart";
+final int age2 = 25;
+```
+
+**Swift**
+```swift
+// var: 재할당 가능
+var name = "Swift"
+name = "SwiftUI" // OK
+
+// let: 재할당 불가 (상수)
+let age = 25
+// age = 26 // Error
+
+// 타입 명시
+var name2: String = "Swift"
+let age2: Int = 25
+```
+
+**주요 차이점:**
+- Dart: `var` (가변), `final` (불변, 런타임 상수), `const` (컴파일 타임 상수)
+- Swift: `var` (가변), `let` (불변)
+- Swift에는 Dart의 `const`와 같은 컴파일 타임 상수 개념이 없음
+
+---
+
+## 옵셔널 처리
+
+### null safety vs Optionals
+
+**Dart**
+```dart
+// null safety (Dart 2.12+)
+String? nullableString; // nullable
+String nonNullableString = "Hello"; // non-nullable
+
+// null 체크
+if (nullableString != null) {
+  print(nullableString.length); // 자동으로 non-null로 추론
+}
+
+// null assertion operator (!)
+String value = nullableString!; // null이 아니라고 확신
+
+// null coalescing operator (??)
+String result = nullableString ?? "Default";
+
+// null-aware operator (?.)
+int? length = nullableString?.length; // null이면 null 반환
+int length2 = nullableString?.length ?? 0;
+```
+
+**Swift**
+```swift
+// Optionals
+var nullableString: String? // optional
+var nonNullableString: String = "Hello" // non-optional
+
+// Optional binding
+if let string = nullableString {
+    print(string.count) // non-optional로 사용
+}
+
+// Force unwrapping (!)
+let value = nullableString! // null이 아니라고 확신
+
+// Nil coalescing operator (??)
+let result = nullableString ?? "Default"
+
+// Optional chaining (?.)
+let length: Int? = nullableString?.count // nil이면 nil 반환
+let length2: Int = nullableString?.count ?? 0
+```
+
+**주요 차이점:**
+- Dart: `String?` (nullable 타입)
+- Swift: `String?` (Optional 타입)
+- Dart: `??` 연산자 사용
+- Swift: `??` 연산자 사용 (동일)
+- Dart: `?.` null-aware operator
+- Swift: `?.` optional chaining (동일)
+- Swift: `if let`, `guard let` 패턴 사용
+- Dart: 일반 `if` 문으로 null 체크
+
+---
+
+## 함수 선언
+
+### 함수 문법
+
+**Dart**
+```dart
+// 기본 함수
+void printMessage(String message) {
+  print(message);
+}
+
+// 반환 타입 명시
+int add(int a, int b) {
+  return a + b;
+}
+
+// 화살표 함수 (단일 표현식)
+int multiply(int a, int b) => a * b;
+
+// 네임드 파라미터 (옵셔널)
+void greet({String? name, int? age}) {
+  print("Hello, $name! Age: $age");
+}
+greet(name: "Alice", age: 25);
+
+// 네임드 파라미터 (필수 - required 키워드 사용)
+Widget renderContainer({
+  required Color color,
+  required int index,
+}) {
+  // ...
+}
+
+// 포지셔널 옵셔널 파라미터
+void sum(int a, [int? b, int? c]) {
+  // ...
+}
+
+// 기본값
+void greet2({String name = "Guest"}) {
+  print("Hello, $name!");
+}
+```
+
+**Swift**
+```swift
+// 기본 함수
+func printMessage(_ message: String) {
+    print(message)
+}
+
+// 반환 타입 명시
+func add(_ a: Int, _ b: Int) -> Int {
+    return a + b
+}
+
+// 단일 표현식 (return 생략 가능)
+func multiply(_ a: Int, _ b: Int) -> Int {
+    a * b
+}
+
+// 라벨 파라미터
+func greet(name: String?, age: Int?) {
+    print("Hello, \(name ?? "Guest")! Age: \(age ?? 0)")
+}
+greet(name: "Alice", age: 25)
+
+// 옵셔널 파라미터
+func sum(_ a: Int, _ b: Int? = nil, _ c: Int? = nil) {
+    // ...
+}
+
+// 기본값
+func greet2(name: String = "Guest") {
+    print("Hello, \(name)!")
+}
+```
+
+**주요 차이점:**
+- Dart: `void functionName() {}`
+- Swift: `func functionName() {}`
+- Dart: 화살표 함수 `=>` 지원
+- Swift: 단일 표현식에서 `return` 생략 가능
+- Dart: `{}` (중괄호)로 네임드 파라미터, `required` 키워드로 필수 파라미터 지정
+  - `{required Type param}` - 필수 네임드 파라미터
+  - `{Type? param}` - 옵셔널 네임드 파라미터
+  - `{Type param = defaultValue}` - 기본값이 있는 네임드 파라미터
+- Swift: `name: String` 형태로 라벨 파라미터 (기본적으로 필수)
+- Dart: `[parameter]` (대괄호)로 포지셔널 옵셔널
+- Swift: 기본값 설정으로 옵셔널 처리
+
+---
+
+## 클래스와 생성자
+
+### 클래스 정의
+
+**Dart**
+```dart
+class Person {
+  String name;
+  int age;
+  
+  // 기본 생성자
+  Person(this.name, this.age);
+  
+  // 네임드 생성자
+  Person.anonymous() : name = "Anonymous", age = 0;
+  
+  // 생성자 초기화 리스트
+  Person.fromJson(Map<String, dynamic> json)
+      : name = json['name'],
+        age = json['age'];
+  
+  // 메서드
+  void introduce() {
+    print("I'm $name, $age years old");
+  }
+}
+
+// 사용
+final person = Person("Alice", 25);
+final anonymous = Person.anonymous();
+```
+
+**Swift**
+```swift
+class Person {
+    var name: String
+    var age: Int
+    
+    // 기본 생성자
+    init(name: String, age: Int) {
+        self.name = name
+        self.age = age
+    }
+    
+    // 편의 생성자 (convenience initializer)
+    convenience init() {
+        self.init(name: "Anonymous", age: 0)
+    }
+    
+    // 메서드
+    func introduce() {
+        print("I'm \(name), \(age) years old")
+    }
+}
+
+// 사용
+let person = Person(name: "Alice", age: 25)
+let anonymous = Person()
+```
+
+**주요 차이점:**
+- Dart: `class ClassName { }`
+- Swift: `class ClassName { }` (동일)
+- Dart: `ClassName(this.param)` 형태의 생성자
+- Swift: `init(param: Type) { }` 형태
+- Dart: 네임드 생성자 `ClassName.named()`
+- Swift: `convenience init()` 또는 여러 `init` 오버로딩
+- Dart: `this.` 접근
+- Swift: `self.` 접근
+
+---
+
+## 타입 추론
+
+### 타입 추론 비교
+
+**Dart**
+```dart
+// 타입 추론
+var name = "Dart"; // String으로 추론
+var number = 42; // int로 추론
+var list = [1, 2, 3]; // List<int>로 추론
+
+// 명시적 타입
+String name2 = "Dart";
+int number2 = 42;
+List<int> list2 = [1, 2, 3];
+```
+
+**Swift**
+```swift
+// 타입 추론
+let name = "Swift" // String으로 추론
+let number = 42 // Int로 추론
+let list = [1, 2, 3] // [Int]로 추론
+
+// 명시적 타입
+let name2: String = "Swift"
+let number2: Int = 42
+let list2: [Int] = [1, 2, 3]
+```
+
+**주요 차이점:**
+- 둘 다 강력한 타입 추론 지원
+- Dart: `var`로 타입 추론
+- Swift: `let`/`var`로 타입 추론
+- 타입 명시 시 Dart는 변수 앞에, Swift는 변수 뒤에 타입 표기
+
+---
+
+## 문자열 처리
+
+### 문자열 보간
+
+**Dart**
+```dart
+String name = "Alice";
+int age = 25;
+
+// 문자열 보간
+String message = "Hello, $name! Age: $age";
+String message2 = "Name length: ${name.length}";
+```
+
+**Swift**
+```swift
+let name = "Alice"
+let age = 25
+
+// 문자열 보간
+let message = "Hello, \(name)! Age: \(age)"
+let message2 = "Name length: \(name.count)"
+```
+
+**주요 차이점:**
+- Dart: `$variable` 또는 `${expression}`
+- Swift: `\(expression)` (항상 소괄호 필요)
+- Dart: 단순 변수는 `$`만 사용 가능
+- Swift: 모든 경우 `\(...)` 형태 사용
+
+---
+
+## 제어 흐름
+
+### 조건문과 반복문
+
+**Dart**
+```dart
+// if-else
+if (condition) {
+  // ...
+} else if (otherCondition) {
+  // ...
+} else {
+  // ...
+}
+
+// for loop
+for (var i = 0; i < 10; i++) {
+  print(i);
+}
+
+// for-in
+for (var item in items) {
+  print(item);
+}
+
+// forEach
+items.forEach((item) => print(item));
+
+// switch
+switch (value) {
+  case 1:
+    print("One");
+    break;
+  case 2:
+    print("Two");
+    break;
+  default:
+    print("Other");
+}
+```
+
+**Swift**
+```swift
+// if-else
+if condition {
+    // ...
+} else if otherCondition {
+    // ...
+} else {
+    // ...
+}
+
+// for loop (C 스타일)
+for i in 0..<10 {
+    print(i)
+}
+
+// for-in
+for item in items {
+    print(item)
+}
+
+// forEach
+items.forEach { print($0) }
+
+// switch
+switch value {
+case 1:
+    print("One")
+case 2:
+    print("Two")
+default:
+    print("Other")
+}
+```
+
+**주요 차이점:**
+- Dart: `switch`에서 `break` 필요
+- Swift: `switch`에서 `break` 자동 (fallthrough는 `fallthrough` 키워드 사용)
+- Dart: `for (var i = 0; i < n; i++)` 형태
+- Swift: `for i in 0..<n` 형태 (range 사용)
+- Dart: `forEach`에 클로저 전달
+- Swift: `forEach`에 클로저 전달 (동일)
+
+---
+
+## Extension
+
+### Extension 문법
+
+**Dart**
+```dart
+// Extension 정의
+extension StringExtension on String {
+  String capitalize() {
+    return "${this[0].toUpperCase()}${this.substring(1)}";
+  }
+  
+  bool get isEmail {
+    return this.contains('@');
+  }
+}
+
+// 사용
+String name = "alice";
+print(name.capitalize()); // "Alice"
+```
+
+**Swift**
+```swift
+// Extension 정의
+extension String {
+    func capitalize() -> String {
+        return prefix(1).uppercased() + dropFirst()
+    }
+    
+    var isEmail: Bool {
+        return contains("@")
+    }
+}
+
+// 사용
+let name = "alice"
+print(name.capitalize()) // "Alice"
+```
+
+**주요 차이점:**
+- Dart: `extension Name on Type { }`
+- Swift: `extension Type { }`
+- Dart: `this`로 인스턴스 접근
+- Swift: `self`로 인스턴스 접근 (또는 생략 가능)
+- 둘 다 기존 타입에 기능 추가 가능
+
+---
+
+## 요약 표
+
+| 기능 | Dart | Swift |
+|------|------|-------|
+| 동적 배열 | `List<T>` | `Array<T>` 또는 `[T]` |
+| 클로저 문법 | `(x) => x * 2` | `{ x in x * 2 }` 또는 `{ $0 * 2 }` |
+| 불변 변수 | `final` | `let` |
+| 컴파일 타임 상수 | `const` | 없음 |
+| Nullable 타입 | `String?` | `String?` |
+| 함수 선언 | `void func() {}` | `func func() {}` |
+| 화살표 함수 | `=>` 지원 | 단일 표현식에서 `return` 생략 |
+| 생성자 | `ClassName(this.param)` | `init(param: Type) {}` |
+| 문자열 보간 | `$var` 또는 `${expr}` | `\(expr)` |
+| Range | `for (var i = 0; i < n; i++)` | `for i in 0..<n` |
+| Extension | `extension Name on Type {}` | `extension Type {}` |
+
+---
+
+## 참고 사항
+
+- Dart는 Flutter 프레임워크와 함께 주로 사용됨
+- Swift는 iOS/macOS 개발에 주로 사용됨
+- 두 언어 모두 현대적인 언어 기능을 지원하지만 문법과 철학이 다름
+- Dart는 JavaScript와 유사한 부분이 많음
+- Swift는 Objective-C의 후속 언어로, 안전성과 성능을 중시
+
